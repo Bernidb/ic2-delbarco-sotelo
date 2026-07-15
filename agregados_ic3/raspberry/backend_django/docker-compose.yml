@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  db_mysql:
+    image: mysql:8.0
+    container_name: ic3_mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: ic3_telemetria_db
+      MYSQL_USER: berni
+      MYSQL_PASSWORD: password_segura
+      MYSQL_ROOT_PASSWORD: root_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  backend_django:
+    build: .
+    container_name: ic3_django
+    restart: always
+    network_mode: "host"
+    environment:
+      MYSQL_DATABASE: ic3_telemetria_db
+      MYSQL_USER: berni
+      MYSQL_PASSWORD: password_segura
+      MYSQL_HOST: "127.0.0.1"
+    depends_on:
+      - db_mysql
+    command: >
+      bash -c "python manage.py migrate &&
+               python manage.py iniciar_receptor_mqtt"
+
+volumes:
+  mysql_data:
